@@ -1,0 +1,7 @@
+{
+  "name": "Copy of MarketMaster AI",
+  "description": "An advanced marketing strategy platform featuring AI-driven insights, trend analysis, and strategic campaign generators powered by Gemini.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
