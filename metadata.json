@@ -3,6 +3,7 @@
   "description": "The ultimate AI-powered marketing command center with real-time voice consultation, visual creative generation, and strategic intelligence.",
   "requestFramePermissions": [
     "geolocation",
-    "microphone"
+    "microphone",
+    "camera"
   ]
 }

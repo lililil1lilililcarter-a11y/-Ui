@@ -2,7 +2,6 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { MarketingStrategy, Trend } from "../types";
 
-// Standard instances use the environment key
 const getAI = (apiKey?: string) => new GoogleGenAI({ apiKey: apiKey || process.env.API_KEY || '' });
 
 export const generateMarketingStrategy = async (
@@ -49,7 +48,29 @@ export const generateMarketingStrategy = async (
   return JSON.parse(response.text || "{}");
 };
 
-// --- NEW CUTTING EDGE MODELS ---
+export const fetchLocalCompetitors = async (lat: number, lng: number, category: string): Promise<{text: string, sources: any[]}> => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `Identify top competitors and market gaps for the category: ${category} in this specific area. Provide a strategic teardown.`,
+    config: {
+      tools: [{ googleMaps: {} }],
+      toolConfig: {
+        retrievalConfig: {
+          latLng: {
+            latitude: lat,
+            longitude: lng
+          }
+        }
+      }
+    },
+  });
+
+  return {
+    text: response.text || "No local data found.",
+    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+  };
+};
 
 export const generateDeepStrategy = async (brandName: string, context: string): Promise<string> => {
   const ai = getAI();
@@ -57,14 +78,14 @@ export const generateDeepStrategy = async (brandName: string, context: string): 
     model: "gemini-3-pro-preview",
     contents: `Conduct a deep strategic market analysis and competitive moat evaluation for ${brandName}. Context: ${context}`,
     config: {
-      thinkingConfig: { thinkingBudget: 32768 } // Max reasoning power
+      thinkingConfig: { thinkingBudget: 32768 }
     }
   });
   return response.text || "Reasoning engine failed to produce output.";
 };
 
 export const generate4KAdImage = async (prompt: string): Promise<string | undefined> => {
-  const ai = getAI(); // Uses current key (Pro Image requires paid key)
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-image-preview',
     contents: {
@@ -111,7 +132,19 @@ export const generateVideoAd = async (prompt: string): Promise<string | undefine
   return URL.createObjectURL(blob);
 };
 
-// --- EXISTING SERVICES ---
+export const auditVisualCreative = async (base64Image: string, mimeType: string): Promise<string> => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: {
+      parts: [
+        { inlineData: { data: base64Image, mimeType } },
+        { text: "Analyze this marketing creative visual. Critique its composition, psychological triggers, and brand alignment. Provide actionable improvements." }
+      ]
+    }
+  });
+  return response.text || "Analysis failed.";
+};
 
 export const fetchMarketingTrends = async (): Promise<Trend[]> => {
   const ai = getAI();

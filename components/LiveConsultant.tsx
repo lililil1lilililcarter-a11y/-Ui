@@ -6,8 +6,10 @@ const LiveConsultant: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [status, setStatus] = useState('Idle');
+  const [error, setError] = useState<string | null>(null);
   
   const audioContextRef = useRef<AudioContext | null>(null);
+  const inputAudioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const nextStartTimeRef = useRef(0);
@@ -21,16 +23,27 @@ const LiveConsultant: React.FC = () => {
     }
     sourcesRef.current.forEach(s => s.stop());
     sourcesRef.current.clear();
+    
+    if (inputAudioContextRef.current) inputAudioContextRef.current.close();
+    if (audioContextRef.current) audioContextRef.current.close();
   };
 
   const startSession = async () => {
     setIsConnecting(true);
-    setStatus('Connecting...');
+    setStatus('Requesting Permission...');
+    setError(null);
     
     try {
+      // Ensure gesture-based context creation
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      
+      inputAudioContextRef.current = inputCtx;
       audioContextRef.current = outputCtx;
+
+      // Crucial: Resume contexts on user interaction
+      await inputCtx.resume();
+      await outputCtx.resume();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -91,6 +104,7 @@ const LiveConsultant: React.FC = () => {
         },
         onerror: (e: any) => {
           console.error(e);
+          setError('Session connection failed.');
           stopSession();
         },
         onclose: () => stopSession()
@@ -98,10 +112,16 @@ const LiveConsultant: React.FC = () => {
 
       sessionPromiseRef.current = sessionPromise;
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setIsConnecting(false);
-      setStatus('Mic Access Denied');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Microphone access was denied. Please check site permissions in your browser address bar.');
+        setStatus('Permission Denied');
+      } else {
+        setError('Could not initialize audio consultation. Ensure you are on a secure connection (HTTPS).');
+        setStatus('Init Error');
+      }
     }
   };
 
@@ -122,7 +142,7 @@ const LiveConsultant: React.FC = () => {
           </h2>
           
           <p className="text-lg text-slate-400 leading-relaxed max-w-md">
-            Skip the forms. Engage in a real-time voice conversation with our AI consultant for immediate strategic teardowns and brainstorming.
+            Skip the forms. Engage in a real-time voice conversation with our AI consultant for immediate strategic teardowns.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -153,18 +173,24 @@ const LiveConsultant: React.FC = () => {
               Status: <span className="text-indigo-400">{status}</span>
             </div>
           </div>
+          
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-400 text-sm font-medium max-w-md animate-in slide-in-from-bottom-2">
+              <svg className="w-5 h-5 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <span>{error}</span>
+            </div>
+          )}
         </div>
 
         <div className="w-full md:w-auto flex flex-col items-center justify-center relative">
           <div className="w-64 h-64 rounded-full bg-indigo-600/10 flex items-center justify-center relative">
             <div className={`absolute inset-0 rounded-full border border-indigo-500/30 ${isActive ? 'animate-ping duration-[3s]' : ''}`}></div>
-            <div className={`absolute inset-4 rounded-full border border-indigo-400/20 ${isActive ? 'animate-ping duration-[2s]' : ''}`}></div>
             
             <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 shadow-2xl flex items-center justify-center relative z-10 overflow-hidden">
                {isActive ? (
                  <div className="flex gap-1 items-end h-12">
                     {[1,2,3,4,5,6].map(i => (
-                      <div key={i} className="w-2 bg-white rounded-full animate-[bounce_1s_infinite]" style={{animationDelay: `${i*0.1}s`, height: `${Math.random()*100}%`}}></div>
+                      <div key={i} className="w-2 bg-white rounded-full animate-bounce" style={{animationDelay: `${i*0.1}s`, height: `${Math.random()*100}%`}}></div>
                     ))}
                  </div>
                ) : (

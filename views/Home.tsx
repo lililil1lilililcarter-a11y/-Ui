@@ -9,6 +9,7 @@ import VisualAdGenerator from '../components/VisualAdGenerator';
 import LiveConsultant from '../components/LiveConsultant';
 import DeepStrategyLab from '../components/DeepStrategyLab';
 import VideoAdArchitect from '../components/VideoAdArchitect';
+import LocalIntelligence from '../components/LocalIntelligence';
 
 const Home: React.FC = () => {
   return (
@@ -45,6 +46,11 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Cutting Edge: Local Market Intelligence (NEW) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <LocalIntelligence />
+      </section>
+
       {/* Cutting Edge: Deep Strategy Lab */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <DeepStrategyLab />
@@ -69,7 +75,7 @@ const Home: React.FC = () => {
              </div>
              <h2 className="text-5xl font-black text-slate-900 tracking-tighter">Veo 3.1 <br/> Cinematic Engine</h2>
              <p className="text-xl text-slate-500 leading-relaxed font-medium">
-               Generate professional 1080p marketing videos in seconds. Veo understands cinematic language, lighting, and texture to render assets that were previously only possible with a million-dollar production budget.
+               Generate professional 1080p marketing videos in seconds. Veo understands cinematic language, lighting, and texture to render assets that were previously impossible.
              </p>
              <div className="flex gap-4">
                {['8K Upscaling', 'Neural Lighting', 'Motion Control'].map(tag => (
@@ -129,7 +135,7 @@ const Home: React.FC = () => {
           <div className="order-1 lg:order-2 space-y-10">
              <h2 className="text-5xl font-black text-slate-900 tracking-tighter leading-tight">Expert-Level <br/> Concept Validation</h2>
              <p className="text-2xl text-slate-500 leading-relaxed font-medium">
-               Our models analyze visual concepts through the lens of a world-class creative director, identifying conversion inhibitors and emotional resonance score.
+               Our models analyze visual concepts through the lens of a world-class creative director, identifying conversion inhibitors.
              </p>
              <div className="grid grid-cols-2 gap-6">
                 {[
