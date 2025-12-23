@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { generateMarketingStrategy } from '../services/geminiService';
+import { generateMarketingStrategy, generateSpeech } from '../services/geminiService';
 import { MarketingStrategy } from '../types';
 
 const StrategyGenerator: React.FC = () => {
@@ -8,6 +8,7 @@ const StrategyGenerator: React.FC = () => {
   const [desc, setDesc] = useState('');
   const [result, setResult] = useState<MarketingStrategy | null>(null);
   const [loading, setLoading] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState(false);
   const [error, setError] = useState('');
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -25,6 +26,51 @@ const StrategyGenerator: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePlayAudio = async () => {
+    if (!result || playingAudio) return;
+    setPlayingAudio(true);
+    try {
+      const audioBase64 = await generateSpeech(result.summary);
+      if (audioBase64) {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        const bytes = decodeBase64(audioBase64);
+        const buffer = await decodeAudioData(bytes, audioCtx, 24000, 1);
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+        source.onended = () => setPlayingAudio(false);
+        source.start();
+      }
+    } catch (e) {
+      console.error(e);
+      setPlayingAudio(false);
+    }
+  };
+
+  // Helper for audio
+  const decodeBase64 = (base64: string) => {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  };
+
+  const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+    for (let channel = 0; channel < numChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < frameCount; i++) {
+        channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+      }
+    }
+    return buffer;
   };
 
   return (
@@ -91,7 +137,19 @@ const StrategyGenerator: React.FC = () => {
         {result && (
           <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="border-t border-slate-100 pt-8">
-              <h4 className="text-xl font-bold text-slate-900 mb-4">Strategic Overview</h4>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-xl font-bold text-slate-900">Strategic Overview</h4>
+                <button 
+                  onClick={handlePlayAudio}
+                  disabled={playingAudio}
+                  className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  <svg className={`w-5 h-5 ${playingAudio ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                  {playingAudio ? 'Reading Strategy...' : 'Listen to Strategy'}
+                </button>
+              </div>
               <p className="text-slate-600 leading-relaxed bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
                 {result.summary}
               </p>

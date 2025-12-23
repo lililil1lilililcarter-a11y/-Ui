@@ -1,7 +1,8 @@
 {
-  "name": "Copy of MarketMaster AI",
-  "description": "An advanced marketing strategy platform featuring AI-driven insights, trend analysis, and strategic campaign generators powered by Gemini.",
+  "name": "MarketMaster AI Pro",
+  "description": "The ultimate AI-powered marketing command center with real-time voice consultation, visual creative generation, and strategic intelligence.",
   "requestFramePermissions": [
-    "geolocation"
+    "geolocation",
+    "microphone"
   ]
 }
