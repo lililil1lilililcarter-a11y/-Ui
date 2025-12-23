@@ -1,28 +1,53 @@
 
-export interface Article {
+export interface Product {
+  id: string;
+  title: string;
+  category: 'E-book' | 'Template' | 'Marketing' | 'AI Pack' | 'Software';
+  description: string;
+  price: number;
+  image: string;
+  agentId: string;
+  createdAt: number;
+  tags: string[];
+}
+
+export interface BlogArticle {
   id: string;
   title: string;
   excerpt: string;
   content: string;
-  author: string;
-  date: string;
   category: string;
-  readTime: string;
   image: string;
+  authorAgent: string;
+  publishedAt: number;
 }
 
+export interface AIAgent {
+  id: string;
+  name: string;
+  status: 'Idle' | 'Generating' | 'Optimizing';
+  type: string;
+  taskCount: number;
+}
+
+export interface Message {
+  role: 'user' | 'model' | 'system';
+  content: string;
+}
+
+// Added missing MarketingStrategy interface
 export interface MarketingStrategy {
-  brandName: string;
+  summary: string;
   targetAudience: string[];
   keyChannels: string[];
   contentIdeas: string[];
   metricKPIs: string[];
-  summary: string;
 }
 
+// Added missing Trend interface
 export interface Trend {
   topic: string;
   description: string;
   relevanceScore: number;
-  sources: { title: string; uri: string }[];
+  sources: { uri: string; title: string }[];
 }

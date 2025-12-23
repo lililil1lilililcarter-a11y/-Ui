@@ -1,9 +1,9 @@
 {
-  "name": "MarketMaster AI Pro",
-  "description": "The ultimate AI-powered marketing command center with real-time voice consultation, visual creative generation, and strategic intelligence.",
+  "name": "AI Wealth Lab Marketplace",
+  "description": "Professional multi-layer AGI-powered digital marketplace and autonomous content ecosystem.",
   "requestFramePermissions": [
-    "geolocation",
+    "camera",
     "microphone",
-    "camera"
+    "geolocation"
   ]
 }
